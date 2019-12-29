@@ -20,6 +20,8 @@ Route::get('/', function () {
 Route::group(['prefix' => 'api'], function () {
 	
 	Route::post('shop', 'ShopController@store');
+	Route::post('login', 'UserController@login');
+	Route::post('invitation/{invitation}', 'UserControler@store'); // Create user based on invitation (for role)
 	
 	Route::group(['middleware' => 'auth'], function () {
 	

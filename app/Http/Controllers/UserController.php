@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -38,11 +39,12 @@ class UserController extends Controller
 	 * Store a newly created user.
 	 *
 	 * @param Request $request
+	 * @param string $invitation
 	 * @return \Illuminate\Http\JsonResponse
 	 * @throws \Illuminate\Validation\ValidationException
 	 * @throws \Throwable
 	 */
-	public function store(Request $request)
+	public function store(Request $request, string $invitation)
 	{
 		$this->validate($request, [
 			'first_name' => 'required',
@@ -98,6 +100,35 @@ class UserController extends Controller
 			return response()->json(['message' => "User deleted successfully."]);
 		} catch (\Exception $e) {
 			return response()->json(['message' => "An error occurred during user deletion.", 'exception' => $e->getMessage()], 500);
+		}
+	}
+	
+	/**
+	 * Login user with the given credentials.
+	 *
+	 * @param Request $request
+	 * @return \Illuminate\Http\JsonResponse
+	 * @throws \Illuminate\Validation\ValidationException
+	 */
+	public function login(Request $request)
+	{
+		$this->validate($request, [
+			'email' => 'required',
+			'password' => 'required',
+		]);
+		
+		$email = $request->input('email');
+		$password = $request->input('password');
+		
+		try {
+			$user = User::all()->where('email', $email)->first();
+			
+			if ($user != null && Hash::check($password, $user->password))
+				return response()->json(['message' => "Logged in successfully.", 'user' => $user]);
+			else
+				return response()->json(['message' => "Unable to login. Invalid credentials."], 401);
+		} catch (\Exception $e) {
+			return response()->json(['message' => "Unable to login. An error occurred.", 'exception' => $e->getMessage()], 500);
 		}
 	}
 }
