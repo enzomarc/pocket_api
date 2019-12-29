@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Shop extends Model
 {
@@ -26,10 +27,10 @@ class Shop extends Model
 	/**
 	 * Get shop users.
 	 *
-	 * @return \Illuminate\Database\Eloquent\Relations\HasMany
+	 * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
 	 */
 	public function users()
 	{
-		return $this->hasMany(User::class, 'shop');
+		return $this->belongsToMany(User::class, 'users_shops', 'shop', 'user');
 	}
 }

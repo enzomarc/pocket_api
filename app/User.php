@@ -40,14 +40,4 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 	{
 		return $this->belongsToMany(Shop::class, 'users_shops', 'user', 'shop');
 	}
-	
-	/**
-	 * Get the user role.
-	 *
-	 * @return \Illuminate\Database\Eloquent\Relations\HasOne
-	 */
-	public function role()
-	{
-		return $this->hasOne(Role::class, 'role');
-	}
 }
