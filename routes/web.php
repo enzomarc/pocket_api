@@ -11,6 +11,18 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return app()->version();
+});
+
+Route::group(['prefix' => 'api'], function () {
+	
+	Route::post('shop', 'ShopController@store');
+	
+	Route::group(['middleware' => 'auth'], function () {
+	
+	});
+	
 });

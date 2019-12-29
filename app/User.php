@@ -10,23 +10,44 @@ use Laravel\Lumen\Auth\Authorizable;
 
 class User extends Model implements AuthenticatableContract, AuthorizableContract
 {
-    use Authenticatable, Authorizable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name', 'email',
-    ];
-
-    /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password',
-    ];
+	use Authenticatable, Authorizable;
+	
+	/**
+	 * The attributes that are mass assignable.
+	 *
+	 * @var array
+	 */
+	protected $fillable = [
+		'first_name', 'last_name', 'email', 'phone', 'password', 'shop', 'role', 'token'
+	];
+	
+	/**
+	 * The attributes excluded from the model's JSON form.
+	 *
+	 * @var array
+	 */
+	protected $hidden = [
+		'password',
+		'token',
+	];
+	
+	/**
+	 * Get user shops.
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+	 */
+	public function shops()
+	{
+		return $this->belongsToMany(Shop::class, 'users_shops', 'user', 'shop');
+	}
+	
+	/**
+	 * Get the user role.
+	 *
+	 * @return \Illuminate\Database\Eloquent\Relations\HasOne
+	 */
+	public function role()
+	{
+		return $this->hasOne(Role::class, 'role');
+	}
 }
