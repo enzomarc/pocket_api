@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Role;
+use App\Shop;
 use App\User;
 use Closure;
 use Illuminate\Support\Facades\DB;
@@ -20,12 +21,12 @@ class AuthMiddleware
 	public function handle($request, Closure $next)
 	{
 		if (!$request->hasHeader('Authorization'))
-			return response()->json('Authorization Header not found.', 401);
+			return response()->json(['message' => 'Authorization Header not found.'], 401);
 
 		$token = $request->header('Authorization');
 
 		if ($token == null)
-			return response()->json('No token provided.', 401);
+			return response()->json(['message' => 'No token provided.'], 401);
 
 		try {
 			$user = User::all()->where('token', $token)->first();
@@ -37,7 +38,20 @@ class AuthMiddleware
 				
 				if ($shop_position != false) {
 					$shop = $url_array[$shop_position + 1];
-					$page = $url_array[$shop_position + 2];
+					
+					if (count($url_array) >= $shop_position + 3) {
+						$page = $url_array[$shop_position + 2];
+						$page = explode('?', $page)[0];
+						
+						if ($page == 'verifications')
+							$page = 'shop';
+					} else {
+						$page = 'shop';
+					}
+					
+					if (Shop::findOrFail($shop) == null) {
+						return response()->json(['message' => "The targetted shop doesn't exists."], 500);
+					}
 					
 					// Check if user can access shop.
 					$can_access = DB::table('users_shops')->where('user', $user->id)->where('shop', $shop)->first();
@@ -67,7 +81,7 @@ class AuthMiddleware
 								if ($can)
 									return $next($request);
 								else
-									return response()->json(['message' => "You don't have permission to access this section."], 401);
+									return response()->json(['message' => "You don't have permission to access this section.", 'section' => $to_check], 401);
 							} else {
 								return response()->json(['message' => "You don't have permission to access this section."], 401);
 							}

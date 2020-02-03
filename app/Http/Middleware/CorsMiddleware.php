@@ -27,8 +27,6 @@ class CorsMiddleware
 			return response()->json('{"method":"OPTIONS"}', 200, $headers);
 		}
 		
-		// dd($request->getRequestUri());
-		
 		$response = $next($request);
 		
 		foreach ($headers as $key => $value) {

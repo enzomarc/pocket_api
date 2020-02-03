@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -47,13 +48,13 @@ class UserController extends Controller
 	public function store(Request $request, string $invitation)
 	{
 		$this->validate($request, [
-			'first_name' => 'required',
 			'email' => 'required',
-			'phone' => 'required',
 			'password' => 'required',
 		]);
 		
 		$data = $request->except('_token');
+		$data['token'] = hash('md5', uniqid() . Str::random(8));
+		$data['password'] = Hash::make($data['password']);
 		$user = new User($data);
 		
 		try {
@@ -75,7 +76,7 @@ class UserController extends Controller
 	{
 		try {
 			$data = $request->except('_token');
-			$user = User::with(['shop'])->findOrFail($user);
+			$user = User::with(['shops'])->findOrFail($user);
 			
 			$user->update($data);
 			return response()->json(['message' => "User updated successfully.", 'user' => $user]);
@@ -121,7 +122,7 @@ class UserController extends Controller
 		$password = $request->input('password');
 		
 		try {
-			$user = User::all()->where('email', $email)->first();
+			$user = User::with(['shops'])->where('email', $email)->first();
 			
 			if ($user != null && Hash::check($password, $user->password))
 				return response()->json(['message' => "Logged in successfully.", 'user' => $user]);
@@ -129,6 +130,26 @@ class UserController extends Controller
 				return response()->json(['message' => "Unable to login. Invalid credentials."], 401);
 		} catch (\Exception $e) {
 			return response()->json(['message' => "Unable to login. An error occurred.", 'exception' => $e->getMessage()], 500);
+		}
+	}
+	
+	/**
+	 * Retrieve user with his token.
+	 *
+	 * @param string $token
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function check(string $token)
+	{
+		try {
+			$user = User::with(['shops'])->where('token', $token)->first();
+			
+			if ($user != null)
+				return response()->json(['user' => $user]);
+			else
+				return response()->json(['message' => "Unable to find authenticates the given user."], 401);
+		} catch (\Exception $e) {
+			return response()->json(['message' => "An error occurred during user retrieving.", 'exception' => $e->getMessage()], 500);
 		}
 	}
 }

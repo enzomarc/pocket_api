@@ -64,8 +64,9 @@ class ShopController extends Controller
 				$user = User::all()->where('email', $user_data['email'])->first();
 				
 				if ($user == null) {
-					$user_data['token'] = hash('md5', $shop->business_name . Str::random(8));
+					$user_data['token'] = hash('md5', uniqid() . Str::random(8));
 					$user_data['password'] = Hash::make($user_data['password']);
+					
 					$user = new User($user_data);
 					
 					if ($user->saveOrFail()) {
@@ -73,6 +74,7 @@ class ShopController extends Controller
 						DB::table('users_roles')->insert(['user' => $user->id, 'shop' => $shop->id, 'role' => 1]);
 						$shop->update(['created_by' => $user->id]);
 						
+						// Send email to shop administrator with how-to-activate information
 						return response()->json(['message' => "Shop created successfully.", 'shop' => $shop], 201);
 					} else {
 						$shop->delete();
@@ -101,12 +103,40 @@ class ShopController extends Controller
 	{
 		try {
 			$data = $request->except('_token');
-			$shop = Shop::with(['users'])->findOrFail($shop);
+			$data['socials'] = json_encode($data['socials']);
+			$shop = Shop::findOrFail($shop);
 			$shop->update($data);
 			
 			return response()->json(['message' => "Shop updated successfully.", 'shop' => $shop]);
 		} catch (\Exception $e) {
 			return response()->json(['message' => "An error occurred during shop update.", 'exception' => $e->getMessage()], 500);
+		}
+	}
+	
+	/**
+	 * Update shop logo.
+	 *
+	 * @param Request $request
+	 * @param int $shop
+	 * @return \Illuminate\Http\JsonResponse
+	 */
+	public function update_logo(Request $request, int $shop)
+	{
+		try {
+			if ($request->hasFile('logo')) {
+				$logo = Uploader::file('logo')->store();
+				
+				if ($logo != false) {
+					$shop = Shop::findOrFail($shop);
+					$shop->update(['logo' => $logo]);
+					
+					return response()->json(['message' => "Shop logo updated successfully.", 'shop' => $shop]);
+				}
+			} else {
+				return response()->json(['message' => "Can't find a new logo.", 'files' => $request->allFiles()], 500);
+			}
+		} catch (\Exception $e) {
+			return response()->json(['message' => "An error occured during logo update.", 'exception' => $e->getMessage()], 500);
 		}
 	}
 	
