@@ -24,6 +24,11 @@ Route::group(['prefix' => 'api'], function () {
 	Route::post('login', 'UserController@login');
 	Route::post('invitation/{invitation}', 'UserControler@store'); // Create user based on invitation (for role)
 	Route::get('check/{token}', 'UserController@check');  // Check user with the given token.
+	Route::get('customers', 'CustomerController@index');
+	Route::get('customers/{customer}', 'CustomerController@show');
+	Route::post('customers', 'CustomerController@store');
+	Route::put('customers/{customer}', 'CustomerController@update');
+	Route::delete('customers/{customer}', 'CustomerController@destroy');
 	
 	/* User non-secured routes */
 	Route::put('teams/{user}', 'UserController@update');
@@ -35,6 +40,8 @@ Route::group(['prefix' => 'api'], function () {
 		Route::post('shop/{shop}/verifications', 'VerificationController@store');  // Store verification
 		Route::put('shop/{shop}/verifications', 'VerificationController@update');
 		Route::get('shop/{shop}/verifications', 'VerificationController@show');
+		
+		Route::get('shop/{shop}/customers', 'CustomerController@index');
 	});
 	
 });
